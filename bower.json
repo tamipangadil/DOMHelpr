@@ -1,0 +1,14 @@
+{
+  "name": "DOMHelpr",
+  "version": "1.0.0",
+  "main": "src/css/main.css",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt",
+    ".git"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "jquery": "^1.8.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+    "name": "DOMHelpr",
+    "version": "0.0.2",
+    "keywords": ["util", "functional", "server", "client", "browser"],
+    "author": "Tami Pangadil",
+    "contributors": [],
+    "dependencies": {"jquery#^1.8.0"}
+}
