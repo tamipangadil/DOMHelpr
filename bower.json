@@ -9,6 +9,7 @@
   ],
   "dependencies": {},
   "devDependencies": {
-    "jquery": "^1.8.0"
+    "jquery": "^1.8.0",
+    "animate.css": "^3.5.2"
   }
 }

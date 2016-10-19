@@ -11,9 +11,11 @@ The concept is so simple. You just need to give instructions to your DOM element
 
 It tells you that you want to add class "test" after 3 seconds. Pretty simple, right?
 
-We will try to continue develpoing this and hopefully we will come up with a stable version and release it on any javascript package manager.
+We will try to continue developing this and hopefully we will come up with a stable version and release it on any javascript package manager.
 
 ## Milestones
-1. Add .class or #id or anything
+1. Add .class or #id
 2. Add delay
-3. Animate
+3. Add events
+4. Add addons
+   a. animatecss

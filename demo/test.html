@@ -9,30 +9,22 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
+        <link rel="stylesheet" href="../bower_components/animate.css/animate.min.css">
+        <style>
+            div { border: 1px solid black; height: 100px; width: 100px; background: green; }
+        </style>
     </head>
     <body>
-        <div data-helpmydom="add .test-3 after 3s, add .test-2">
-            
-        </div>
-        <div data-helpmydom="add .test-1 after 1s, add .test-2">
-            
-        </div>
-        <div data-helpmydom="add .test-2s after 2s, add .test-2">
-            
-        </div>
-        <div data-helpmydom="add .test-5 after 5s, add .test-2">
-            
-        </div>
-        <div data-helpmydom="add .test-7 after 7s, add .test-2">
+        <div data-helpmydom="animate bounce">
             
         </div>
         
         <script src="../bower_components/jquery/dist/jquery.min.js"></script>
         <script src="../src/jquery.domhelpr.js"></script>
+        <script src="../src/jquery.domhelpr.animatecss.js"></script>
         <script>
             $(document).ready(function() {
-                $("body").helpMyDOM();
+                // $("body").helpMyDOM();
             });
         </script>
     </body>

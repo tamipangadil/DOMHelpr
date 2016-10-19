@@ -12,7 +12,7 @@
                 return;
             }
 
-            // Check if a validator for this form was already created
+            // Check if a helper for this element was already created
             var domHelpr = $.data(this[ 0 ], "helper");
             if (domHelpr) {
                 return domHelpr;
@@ -45,6 +45,10 @@
             separator: {
                 main: ",", // comma separator
                 sub: " " // space separator
+            },
+            valueTypes: {
+                ".": "class",
+                "#": "id"
             }
         },
 
@@ -53,7 +57,7 @@
             init: function () {
                 console.log("Initializing DOM Helpr");
 
-                if (!this.valid()) {
+                if (!this.hasElements()) {
                     console.log("Invalid. DOMHelpr cannot help you!");
                     return;
                 }
@@ -68,8 +72,18 @@
                 });
             },
 
-            valid: function () {
+            hasElements: function () {
                 return this.getElements().size() > 0;
+            },
+
+            isActionAcceptable: function (action) {
+                if (this.isAction(action) === true) {
+                    console.log("Action: " + action + " is an action");
+                    return true;
+                } else {
+                    console.log("Action: " + action + " is an action");
+                    return false;
+                }
             },
 
             isAction: function (action) {
@@ -82,6 +96,22 @@
 
             getElements: function () {
                 return $(this.currentElement).find("[" + this.dataAttribute + "]");
+            },
+
+            addAcceptableAction: function (newAction) {
+                var _ = this;
+
+                switch (typeof newAction) {
+                    case "Array":
+                        console.log("Concat new actions");
+                        //_.settings.actions = this.settings.actions.concat(newAction);
+                        break;
+                    default: // String
+                        console.log("Push new action");
+                        //_.settings.actions.push(newAction);
+                }
+
+                console.log(newAction);
             },
 
             getActions: function (actions, separator) {
@@ -103,10 +133,14 @@
                 if (!value)
                     return null;
 
-                if (value.indexOf(".") === 0)
-                    return "attr-class";
-                else if (value.indexOf("#") === 0)
-                    return "attr-id";
+                var valueTypes = this.settings.valueTypes;
+
+                for (var prop in valueTypes) {
+                    if (valueTypes.hasOwnProperty(prop)) {
+                        if (value.indexOf(prop) === 0)
+                            return prop;
+                    }
+                }
 
                 return null;
             },
@@ -118,10 +152,16 @@
             applyAction: function (action, value, element) {
                 var type = this.getValueType(value);
 
-                switch (action + " " + type) {
+                var actionType = action + (type ? " " + type : "");
+                console.log("actionType: " + actionType);
+                switch (actionType) {
                     case 'add attr-class':
                         this.methods.addAttrClass(value, element);
                         break;
+                    case 'animate':
+                        this.methods.animateCss(value, element);
+                        break;
+
                     default:
                 }
             },
@@ -135,7 +175,7 @@
 
             applyActions: function (actions, element) {
                 var subActions = this.getActions(actions, this.settings.separator.sub);
-                
+
                 var collectedActions = {};
                 var delayedActions = {};
 
@@ -149,7 +189,7 @@
                         var a = subActions[i];
                         var v = null;
 
-                        if (this.isAction(a)) {
+                        if (this.isActionAcceptable(a)) {
                             v = subActions[++i];
                             prevKey = a + " " + v;
                             collectedActions[prevKey] = [a, v];
@@ -254,6 +294,74 @@
                 return parseInt(str) * parseInt(multiplier);
             }
 
+        },
+
+        helpers: {
+            
+            // String Helpers
+            toCamelCase = function () {
+                return this
+                        .replace(/\s(.)/g, function ($1) {
+                            return $1.toUpperCase();
+                        })
+                        .replace(/\s/g, '')
+                        .replace(/^(.)/, function ($1) {
+                            return $1.toLowerCase();
+                        });
+            },
+
+            camelizeOne = function () {
+                return this.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
+                    return index === 0 ? letter.toLowerCase() : letter.toUpperCase();
+                }).replace(/\s+/g, '');
+            },
+
+            camelizeTwo = function () {
+                return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
+                    if (+match === 0)
+                        return ""; // or if (/\s+/.test(match)) for white spaces
+                    return index === 0 ? match.toLowerCase() : match.toUpperCase();
+                });
+            },
+
+            toUpperCaseFirstChar = function () {
+                return this.substr(0, 1).toUpperCase() + this.substr(1);
+            },
+
+            toLowerCaseFirstChar = function () {
+                return this.substr(0, 1).toLowerCase() + this.substr(1);
+            },
+
+            toUpperCaseEachWord = function (delim) {
+                delim = delim ? delim : ' ';
+                return this.split(delim).map(function (v) {
+                    return v.toUpperCaseFirstChar();
+                }).join(delim);
+            },
+
+            toLowerCaseEachWord = function (delim) {
+                delim = delim ? delim : ' ';
+                return this.split(delim).map(function (v) {
+                    return v.toLowerCaseFirstChar();
+                }).join(delim);
+            },
+
+            toCamelCaseSimoVersion = function () {
+                var re = /(?:-|\s)+([^-\s])/g;
+                return function (capFirst) {
+                    var str = (' ' + this).replace(re, function (a, b) {
+                        return b.toUpperCase();
+                    });
+                    return capFirst ? str : (str.substr(0, 1).toLowerCase() + str.substr(1));
+                };
+            },
+
+            replaceSpace = function (replaceWith) {
+                replaceWith = replaceWith ? replaceWith : '';
+
+                return this.replace(/\s/g, replaceWith);
+            }
+            
         }
 
     });
