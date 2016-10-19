@@ -16,6 +16,10 @@ We will try to continue developing this and hopefully we will come up with a sta
 ## Milestones
 1. Add .class or #id
 2. Add delay
-3. Add events
-4. Add addons
-   a. animatecss
+   - after
+3. Add addons
+   -  animate.css
+4. Add events
+   - show
+   - hide
+   - click

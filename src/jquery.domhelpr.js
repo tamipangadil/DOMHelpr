@@ -81,13 +81,23 @@
                     console.log("Action: " + action + " is an action");
                     return true;
                 } else {
-                    console.log("Action: " + action + " is an action");
+                    console.log("Action: " + action + " is NOT an action");
                     return false;
                 }
             },
 
             isAction: function (action) {
                 return this.settings.actions.indexOf(action) >= 0;
+            },
+            
+            isStopperAcceptable: function(action) {
+                if (this.isStopper(action) === true) {
+                    console.log("Stopper: " + action + " is a stopper");
+                    return true;
+                } else {
+                    console.log("Stopper: " + action + " is NOT a stopper");
+                    return false;
+                }
             },
 
             isStopper: function (action) {
@@ -104,11 +114,11 @@
                 switch (typeof newAction) {
                     case "Array":
                         console.log("Concat new actions");
-                        //_.settings.actions = this.settings.actions.concat(newAction);
+                        $.domHelpr.defaults.actions = this.settings.actions.concat(newAction);
                         break;
                     default: // String
                         console.log("Push new action");
-                        //_.settings.actions.push(newAction);
+                        $.domHelpr.defaults.actions.push(newAction);
                 }
 
                 console.log(newAction);
@@ -138,11 +148,32 @@
                 for (var prop in valueTypes) {
                     if (valueTypes.hasOwnProperty(prop)) {
                         if (value.indexOf(prop) === 0)
-                            return prop;
+                            return valueTypes[prop];
                     }
                 }
 
                 return null;
+            },
+            
+            extractValues: function(actions, startIndex) {
+                if (!actions)
+                    return null;
+                
+                var values = [];
+                var index = startIndex;
+                
+                for (; index < actions.length; index++) {
+                    var a = actions[index];
+                    
+                    if (this.isActionAcceptable(a))
+                        break;
+                    else if (this.isStopperAcceptable(a))
+                        break;
+                    
+                    values.push(a);
+                }
+                
+                return {values: values.join(" "), lastIndex: index};
             },
 
             extractAction: function (action) {
@@ -153,17 +184,23 @@
                 var type = this.getValueType(value);
 
                 var actionType = action + (type ? " " + type : "");
+                
+                // convert to camelcase
+                actionType = actionType.replace(/\s(.)/g, function ($1) {
+                                            return $1.toUpperCase();
+                                        })
+                                        .replace(/\s/g, '')
+                                        .replace(/^(.)/, function ($1) {
+                                            return $1.toLowerCase();
+                                        });
+                                        
                 console.log("actionType: " + actionType);
-                switch (actionType) {
-                    case 'add attr-class':
-                        this.methods.addAttrClass(value, element);
-                        break;
-                    case 'animate':
-                        this.methods.animateCss(value, element);
-                        break;
-
-                    default:
-                }
+                
+                // load method automatically
+                if (this.methods.hasOwnProperty(actionType))
+                    this.methods[actionType](value, element);
+                else if (this.methods.hasOwnProperty(action))
+                    this.methods[action](value, element);
             },
 
             applyActionWithDelay: function (delay, action, value, element) {
@@ -185,30 +222,29 @@
 
                     var prevKey = "";
 
-                    for (var i = 0; i < subActions.length; ) {
+                    for (var i = 0; i < subActions.length; i++) {
                         var a = subActions[i];
                         var v = null;
 
                         if (this.isActionAcceptable(a)) {
-                            v = subActions[++i];
-                            prevKey = a + " " + v;
+                            var vs = this.extractValues(subActions, i+1);
+                            console.log("extractedValues");
+                            console.log(vs);
+                            v = vs.values;
+                            prevKey = a + " " + vs.values;
                             collectedActions[prevKey] = [a, v];
 
                             console.log("action: " + a);
                             console.log("value: " + v);
-
-
-
-                        } else if (this.isStopper(a)) {
+                            i = vs.lastIndex - 1;
+                        } else if (this.isStopperAcceptable(a)) {
                             console.log("Adding delay action");
-                            v = this.parsers.toMilliseconds(subActions[++i]);
+                            v = this.parsers.toMilliseconds(subActions[i+1]);
                             delayedActions[prevKey] = v;
 
                             console.log("action: " + a);
                             console.log("value: " + v);
                         }
-
-                        i++;
                     }
 
                     if (collectedActions) {
@@ -257,16 +293,26 @@
             }
 
         },
-
+        
         methods: {
 
-            addAttrClass: function (value, element) {
+            addClass: function (value, element) {
                 console.log("Added class name '" + value + "' to element " + element);
-
+                
                 if (value.indexOf(".") === 0)
-                    value = value.substring(1);
+                    value = value.replace(/\./g, "");
 
                 $(element).addClass(value);
+
+            },
+            
+            addId: function (value, element) {
+                console.log("Added id value '" + value + "' to element " + element);
+                
+                if (value.indexOf("#") === 0)
+                    value = value.replace(/\#/g, "").replace(/\s/g, "_");
+
+                $(element).attr("id", value);
 
             }
 
@@ -277,7 +323,7 @@
             toMilliseconds: function (str) {
                 var multiplier = 1; // milliseconds
 
-                console.log("str=" + str);
+                console.log("delay time: " + str);
 
                 if (!str)
                     return null;
@@ -297,71 +343,7 @@
         },
 
         helpers: {
-            
-            // String Helpers
-            toCamelCase = function () {
-                return this
-                        .replace(/\s(.)/g, function ($1) {
-                            return $1.toUpperCase();
-                        })
-                        .replace(/\s/g, '')
-                        .replace(/^(.)/, function ($1) {
-                            return $1.toLowerCase();
-                        });
-            },
-
-            camelizeOne = function () {
-                return this.replace(/(?:^\w|[A-Z]|\b\w)/g, function (letter, index) {
-                    return index === 0 ? letter.toLowerCase() : letter.toUpperCase();
-                }).replace(/\s+/g, '');
-            },
-
-            camelizeTwo = function () {
-                return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
-                    if (+match === 0)
-                        return ""; // or if (/\s+/.test(match)) for white spaces
-                    return index === 0 ? match.toLowerCase() : match.toUpperCase();
-                });
-            },
-
-            toUpperCaseFirstChar = function () {
-                return this.substr(0, 1).toUpperCase() + this.substr(1);
-            },
-
-            toLowerCaseFirstChar = function () {
-                return this.substr(0, 1).toLowerCase() + this.substr(1);
-            },
-
-            toUpperCaseEachWord = function (delim) {
-                delim = delim ? delim : ' ';
-                return this.split(delim).map(function (v) {
-                    return v.toUpperCaseFirstChar();
-                }).join(delim);
-            },
-
-            toLowerCaseEachWord = function (delim) {
-                delim = delim ? delim : ' ';
-                return this.split(delim).map(function (v) {
-                    return v.toLowerCaseFirstChar();
-                }).join(delim);
-            },
-
-            toCamelCaseSimoVersion = function () {
-                var re = /(?:-|\s)+([^-\s])/g;
-                return function (capFirst) {
-                    var str = (' ' + this).replace(re, function (a, b) {
-                        return b.toUpperCase();
-                    });
-                    return capFirst ? str : (str.substr(0, 1).toLowerCase() + str.substr(1));
-                };
-            },
-
-            replaceSpace = function (replaceWith) {
-                replaceWith = replaceWith ? replaceWith : '';
-
-                return this.replace(/\s/g, replaceWith);
-            }
-            
+            // add few helpers here
         }
 
     });

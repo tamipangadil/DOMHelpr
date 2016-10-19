@@ -5,7 +5,7 @@
     }
 
     $.extend($domHelpr.methods, {
-        animateCss: function (animationName, element) {
+        animate: function (animationName, element) {
             var animationEnd = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
             $(element).addClass('animated ' + animationName).one(animationEnd, function() {
                 $(this).removeClass('animated ' + animationName);
